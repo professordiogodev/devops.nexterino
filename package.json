@@ -3,10 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start -p ${PORT:-3000}"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -23,5 +22,11 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
     "@eslint/eslintrc": "^3"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-arm64-gnu": "1.29.1",
+    "lightningcss-linux-x64-gnu": "1.29.1",
+    "@tailwindcss/oxide-linux-arm64-gnu": "4.1.10",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.1.10"
   }
 }

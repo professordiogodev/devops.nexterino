@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXTERINO
+
+**A minimal Next.js “Hello World” app with runtime-configurable path, number, and healthcheck, packaged as a multi-architecture Docker image.**
+
+---
+
+## Features
+
+* **Dynamic Path & Number**: Uses `DESIRED_PATH` and `NUMBER` environment variables to customize the greeting.
+* **Healthcheck Endpoint**: Built‑in `/api/healthcheck` route returning HTTP 200 "It works!".
+* **Next.js App Router**: Server‑side rendering with the App Router (`app/` directory).
+* **Standalone Output**: `next.config.js` set to `output: 'standalone'` for minimal runtime bundle.
+* **Multi‑Arch Docker**: Single Docker manifest supporting both x86\_64 and ARM64 platforms (via optionalDependencies).
+
+---
+
+## Environment Variables
+
+| Name           | Default | Description                                                           |
+| -------------- | ------- | --------------------------------------------------------------------- |
+| `DESIRED_PATH` | `/`     | Prefix path for the greeting page (e.g. `/demo` → served at `/demo`). |
+| `NUMBER`       | `0`     | Arbitrary number interpolated into the greeting.                      |
+| `PORT`         | `3000`  | Port for the Next.js server (`next start -p`).                        |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Run in development mode
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# starts at http://localhost:3000 by default
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Visit `http://localhost:3000${DESIRED_PATH}` to see your greeting.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Dockerized Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+We use a multi-stage Dockerfile to produce a slim, standalone image, and BuildKit to target both ARM64 and x86\_64.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Build & Run Locally (single‑arch)
 
-## Deploy on Vercel
+```bash
+# Build (x86_64 image by default on Intel/macOS hosts)
+docker build -t nexterino .
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Run with custom path, number, and port
+docker run --rm -p 8080:8080 \
+  -e DESIRED_PATH=/demo \
+  -e NUMBER=42 \
+  -e PORT=8080 \
+  nexterino
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Endpoints:
+
+* Greeting → `http://localhost:8080/demo`
+* Healthcheck → `http://localhost:8080/demo/api/healthcheck`
+
+### Multi‑Arch Build & Push
+
+> Requires Docker Buildx and BuildKit.
+
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t YOUR_REPO/nexterino:latest \
+  --push .
+```
+
+Now `docker pull YOUR_REPO/nexterino:latest` will fetch the correct image for your architecture.
+
+---
+
+## Deploying
+
+You can deploy this Docker image to any container platform (e.g. Kubernetes, Fly.io, Render, AWS ECS).
+On Vercel, you can skip Docker entirely—just push the Next.js repo, set the environment variables in the dashboard, and it works out of the box.
